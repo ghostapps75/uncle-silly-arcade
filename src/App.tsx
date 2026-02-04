@@ -39,12 +39,15 @@ function App() {
           ))}
 
           {state.isProcessing && (
-            <div className="flex w-full mb-4 animate-fade-in">
-              <div className="bg-white px-5 py-3 rounded-2xl rounded-bl-sm border border-gray-100 shadow-sm">
-                <div className="flex gap-1">
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
+            <div className="flex w-full mb-6 animate-fade-in justify-start">
+              <div className="bg-arcade-paper px-6 py-4 rounded-2xl rounded-tl-sm border border-arcade-magenta/20 shadow-[0_4px_15px_-3px_rgba(0,0,0,0.3)] relative">
+                {/* Glow effect */}
+                <div className="absolute inset-0 rounded-2xl rounded-tl-sm bg-arcade-magenta/5 pointer-events-none" />
+
+                <div className="flex gap-1.5 relative z-10">
+                  <span className="w-2 h-2 bg-arcade-magenta rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                  <span className="w-2 h-2 bg-arcade-magenta rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                  <span className="w-2 h-2 bg-arcade-magenta rounded-full animate-bounce"></span>
                 </div>
               </div>
             </div>

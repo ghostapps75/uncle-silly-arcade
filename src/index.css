@@ -1,18 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Outfit:wght@100..900&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Inter', 'system-ui', 'sans-serif';
+  --font-sans: 'Outfit', 'system-ui', 'sans-serif';
   --font-display: 'Fredoka', 'Comic Neue', 'sans-serif';
 
-  --color-brand-primary: #6366f1;
-  --color-brand-secondary: #ec4899;
-  --color-brand-bg: #f3f4f6;
-  --color-bubble-user: #3b82f6;
-  --color-bubble-bot: #ffffff;
+  /* Midnight Arcade Palette */
+  --color-arcade-midnight: #1a1a2e;
+  /* Deep Purple/Blue Base */
+  --color-arcade-paper: #252a41;
+  /* Card Backgrounds */
+  --color-arcade-cyan: #06b6d4;
+  /* Electric Cyan */
+  --color-arcade-magenta: #d946ef;
+  /* Neon Magenta */
+  --color-arcade-gold: #f59e0b;
+  /* Sunset Gold */
+  --color-arcade-mint: #34d399;
+  /* Mint Glow */
+  --color-arcade-text-main: #f8fafc;
+  --color-arcade-text-muted: #94a3b8;
 
+  /* Legacy mappings (for backward compatibility during migration, if needed) */
+  --color-brand-primary: var(--color-arcade-cyan);
+  --color-brand-secondary: var(--color-arcade-magenta);
+  --color-brand-bg: var(--color-arcade-midnight);
+
+  /* Animations */
   --animate-bounce-short: bounce-short 0.5s ease-in-out 1;
   --animate-fade-in: fadeIn 0.3s ease-out forwards;
   --animate-slide-up: slideUp 0.3s ease-out forwards;
+  --animate-pulse-glow: pulseGlow 2s infinite;
 
   @keyframes bounce-short {
 
@@ -47,13 +65,33 @@
       opacity: 1;
     }
   }
+
+  @keyframes pulseGlow {
+
+    0%,
+    100% {
+      box-shadow: 0 0 5px var(--color-arcade-cyan);
+    }
+
+    50% {
+      box-shadow: 0 0 15px var(--color-arcade-cyan), 0 0 5px var(--color-arcade-magenta);
+    }
+  }
 }
 
 @layer base {
   body {
-    @apply bg-brand-bg text-gray-900 font-sans antialiased;
-    /* Prevent rubber-banding on iOS */
+    background-color: var(--color-arcade-midnight);
+    color: var(--color-arcade-text-main);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
     overscroll-behavior-y: none;
+
+    /* Subtle Radial Gradient Global Background */
+    background-image:
+      radial-gradient(circle at 15% 50%, rgba(6, 182, 212, 0.08), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(217, 70, 239, 0.08), transparent 25%);
+    background-attachment: fixed;
   }
 }
 

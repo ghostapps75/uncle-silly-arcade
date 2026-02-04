@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { Header } from './Header';
 
 interface MainLayoutProps {
     children: React.ReactNode;
@@ -11,7 +12,6 @@ export function MainLayout({ children, bottomContent }: MainLayoutProps) {
     // Auto-scroll to bottom on new messages
     useEffect(() => {
         if (scrollRef.current) {
-            // Smooth scroll
             scrollRef.current.scrollTo({
                 top: scrollRef.current.scrollHeight,
                 behavior: 'smooth'
@@ -20,26 +20,38 @@ export function MainLayout({ children, bottomContent }: MainLayoutProps) {
     }, [children]);
 
     return (
-        <div className="flex flex-col h-screen bg-brand-bg overflow-hidden">
-            {/* Header (optional, maybe just Uncle Silly title?) */}
-            <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 px-4 py-3 flex items-center justify-center shrink-0 z-10 sticky top-0">
-                <h1 className="font-display font-bold text-xl text-brand-primary tracking-wide">
-                    Uncle Silly
-                </h1>
-            </header>
+        <div className="flex flex-col h-[100dvh] overflow-hidden relative selection:bg-arcade-cyan/30">
+            {/* 
+               Marquee Header 
+               - Part of flex layout (flex-none)
+               - Stays at top, never overlaps content physically
+            */}
+            <Header />
 
             {/* Scrollable Content Area */}
             <main
                 ref={scrollRef}
-                className="flex-1 overflow-y-auto px-4 py-6 scroll-smooth pb-32" // Padding bottom for input bar
+                className="flex-1 overflow-y-auto w-full px-4 scroll-smooth"
             >
-                <div className="max-w-3xl mx-auto flex flex-col justify-end min-h-full">
-                    {children}
+                {/* 
+                   Content Container 
+                   - On desktop: bounded width with glass effect
+                   - On mobile: full width, clean look
+                */}
+                <div className="max-w-3xl mx-auto flex flex-col justify-end min-h-full pb-32 pt-6">
+                    {/* subtle glass backing for chat area on desktop */}
+                    <div className="md:bg-arcade-paper/20 md:backdrop-blur-sm md:rounded-3xl md:p-6 md:border md:border-white/5 transition-all duration-300">
+                        {children}
+                    </div>
                 </div>
             </main>
 
-            {/* Fixed Bottom Input */}
-            {bottomContent}
+            {/* Fixed Bottom Input Area */}
+            <div className="absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
+                <div className="max-w-3xl mx-auto px-4 pb-4 pointer-events-auto">
+                    {bottomContent}
+                </div>
+            </div>
         </div>
     );
 }

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Send } from 'lucide-react';
+import { Send, Sparkles } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import type { GameState, QuickReply } from '../../state/types';
 
@@ -17,10 +17,6 @@ export function InputBar({ onSend, currentState, quickReplies, isProcessing }: I
     const handleSubmit = (e?: React.FormEvent) => {
         e?.preventDefault();
         if (!input.trim() || isProcessing) return;
-
-        // We send input even if technically invalid, to let the bot respond with "I didn't catch that"
-        // OR we could shake the input.
-        // Logic decided: send it. UseGameState handles rejection message.
         onSend(input);
         setInput('');
     };
@@ -29,26 +25,24 @@ export function InputBar({ onSend, currentState, quickReplies, isProcessing }: I
         onSend(value);
     };
 
-    // Focus input on mount/state change? Maybe not on mobile to prevent keyboard popup
-    // useEffect(() => {
-    //   if (!isTouchDevice()) inputRef.current?.focus(); 
-    // }, [currentState]);
-
     return (
-        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 p-2 pb-safe-area z-50">
-            {/* Quick Replies */}
+        <div className="w-full flex flex-col gap-3">
+            {/* Quick Replies (Floating Chips) */}
             {quickReplies.length > 0 && (
-                <div className="flex gap-2 mb-3 overflow-x-auto px-2 pb-1 scrollbar-hide snap-x">
+                <div className="flex gap-2 overflow-x-auto px-2 pb-2 scrollbar-hide snap-x mask-fade-sides">
                     {quickReplies.map((reply) => (
                         <button
                             key={reply.value}
                             onClick={() => handleChip(reply.value)}
                             disabled={isProcessing}
                             className={cn(
-                                "snap-start shrink-0 px-4 py-2 rounded-full font-medium text-sm transition-transform active:scale-95 disabled:opacity-50",
-                                reply.color === 'brand-primary' && "bg-brand-primary text-white shadow-md shadow-indigo-200",
-                                reply.color === 'brand-secondary' && "bg-brand-secondary text-white shadow-md shadow-pink-200",
-                                (reply.color === 'gray' || !reply.color) && "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                "snap-start shrink-0 px-5 py-2 rounded-full font-display font-bold text-sm transition-all active:scale-95 disabled:opacity-50 border-2 select-none",
+                                // Primary Action (Cyan)
+                                reply.color === 'brand-primary' && "bg-arcade-cyan text-arcade-midnight border-arcade-cyan shadow-[0_0_15px_rgba(6,182,212,0.4)] hover:bg-white hover:border-white hover:text-arcade-cyan",
+                                // Secondary Action (Magenta)
+                                reply.color === 'brand-secondary' && "bg-arcade-magenta text-white border-arcade-magenta shadow-[0_0_15px_rgba(217,70,239,0.4)] hover:bg-white hover:border-white hover:text-arcade-magenta",
+                                // Default / Neutral (Outline)
+                                (reply.color === 'gray' || !reply.color) && "bg-arcade-paper/80 backdrop-blur-sm text-arcade-cyan border-arcade-cyan/30 hover:bg-arcade-cyan hover:text-arcade-midnight hover:border-arcade-cyan hover:shadow-[0_0_15px_rgba(6,182,212,0.3)]"
                             )}
                         >
                             {reply.label}
@@ -57,26 +51,37 @@ export function InputBar({ onSend, currentState, quickReplies, isProcessing }: I
                 </div>
             )}
 
-            {/* Input Field */}
-            <form onSubmit={handleSubmit} className="flex gap-2 max-w-3xl mx-auto px-2 mb-2">
-                <div className="relative flex-1">
+            {/* Input Capsule */}
+            <form onSubmit={handleSubmit} className="relative group">
+                <div className={cn(
+                    "absolute -inset-0.5 rounded-full bg-gradient-to-r from-arcade-cyan to-arcade-magenta opacity-30 blur group-focus-within:opacity-75 transition duration-500",
+                    isProcessing && "opacity-0"
+                )}></div>
+
+                <div className="relative flex items-center bg-arcade-paper/90 backdrop-blur-xl rounded-full p-1 pr-2 border border-white/10 shadow-2xl">
                     <input
                         ref={inputRef}
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         disabled={isProcessing}
-                        placeholder={currentState === 'HOME_MENU' ? "Type 'Trivia' or select a button..." : "Type your answer..."}
-                        className="w-full pl-4 pr-10 py-3 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-brand-primary/50 text-lg transition-all"
+                        placeholder={currentState === 'HOME_MENU' ? "Say 'Hello' or pick an option..." : "Type your answer..."}
+                        className="flex-1 bg-transparent border-none text-white placeholder:text-arcade-text-muted/50 px-5 py-3 text-lg focus:ring-0 font-sans tracking-wide"
                     />
+
+                    <button
+                        type="submit"
+                        disabled={!input.trim() || isProcessing}
+                        className={cn(
+                            "p-3 rounded-full transition-all duration-300 transform active:scale-90 flex items-center justify-center",
+                            !input.trim() || isProcessing
+                                ? "opacity-50 cursor-not-allowed bg-white/5 text-white/30"
+                                : "bg-gradient-to-tr from-arcade-cyan to-blue-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.5)] hover:shadow-[0_0_20px_rgba(6,182,212,0.7)]"
+                        )}
+                    >
+                        {isProcessing ? <Sparkles className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 ml-0.5" />}
+                    </button>
                 </div>
-                <button
-                    type="submit"
-                    disabled={!input.trim() || isProcessing}
-                    className="bg-brand-primary text-white p-3 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-transform active:scale-90 shadow-md"
-                >
-                    <Send size={24} />
-                </button>
             </form>
         </div>
     );
