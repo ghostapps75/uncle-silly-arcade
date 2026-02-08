@@ -27,7 +27,19 @@ export default async (req: Request, context: Context) => {
 
     if (req.method !== 'GET') return errorResponse('Method Not Allowed', 405);
 
+    // 1. Determine Date in Toronto
     let torontoTime = DateTime.now().setZone('America/Toronto');
+
+    // Allow fetching specific date via ?date=YYYY-MM-DD
+    const url = new URL(req.url);
+    const requestedDate = url.searchParams.get('date');
+    if (requestedDate) {
+        const parsed = DateTime.fromISO(requestedDate, { zone: 'America/Toronto' });
+        if (parsed.isValid) {
+            torontoTime = parsed;
+        }
+    }
+
     const dateKey = torontoTime.toFormat('yyyy-MM-dd');
     const isBirthday = torontoTime.month === 2 && torontoTime.day === 5;
 
@@ -40,9 +52,21 @@ export default async (req: Request, context: Context) => {
         { name: "Easter Sunday", date: "2026-04-05" }
     ];
 
-    // Find the next upcoming event
-    const nextEvent = countdownEvents.find(e => DateTime.fromISO(e.date) > torontoTime) || countdownEvents[0];
-    const daysAway = Math.ceil(DateTime.fromISO(nextEvent.date).diff(torontoTime, 'days').days);
+    // Filter to future events only
+    const upcomingEvents = countdownEvents.filter(e => DateTime.fromISO(e.date) > torontoTime);
+
+    // Fallback if no future events (shouldn't happen with this list, but safe)
+    if (upcomingEvents.length === 0) {
+        upcomingEvents.push({ name: "Summer Vacation", date: "2026-06-26" });
+    }
+
+    // Rotate the "Featured Event" based on the day of the year
+    // This allows us to talk about different events on different days, not just the nearest one.
+    const dayOfYear = torontoTime.ordinal;
+    const eventIndex = dayOfYear % upcomingEvents.length;
+    const featuredEvent = upcomingEvents[eventIndex];
+
+    const daysAway = Math.ceil(DateTime.fromISO(featuredEvent.date).diff(torontoTime, 'days').days);
 
     // 3. National Days
     // @ts-ignore
@@ -56,13 +80,13 @@ export default async (req: Request, context: Context) => {
     Verified National Days: ${hasVerified ? JSON.stringify(verifiedDays) : "NONE"}.
 
     DAILY DATA FOR NARRATION:
-    - It is exactly ${daysAway} days until ${nextEvent.name}.
+    - Featured Event: ${featuredEvent.name} is in ${daysAway} days.
     - The sun is setting around 5:35 PM in Toronto today.
 
     Task: Generate Casey's Daily Debrief.
     
     Constraints:
-    1. 'dailyPulse': Write a 2-sentence excited update. Mention the countdown to ${nextEvent.name} and the sunset/daylight. 
+    1. 'dailyPulse': Write a 2-sentence excited update. Mention the countdown to ${featuredEvent.name} and the sunset/daylight. 
        - CRITICAL: Do NOT mention octopuses, honey, or generic nature facts. 
        - Stick ONLY to the provided data.
     2. 'wordOfDay': Suitable for a 12-year-old.
@@ -74,7 +98,7 @@ export default async (req: Request, context: Context) => {
     Example JSON Structure:
     {
       "wordOfDay": { "word": "Luminous", "meaning": "Giving off light", "example": "The moon was luminous.", "mnemonic": "Lamps Usually Make Intense Night-light Using Some electricity" },
-      "dailyPulse": "We are just ${daysAway} days away from ${nextEvent.name}! Plus, the sun stays up until 5:35 PM today—spring is coming!",
+      "dailyPulse": "We are just ${daysAway} days away from ${featuredEvent.name}! Plus, the sun stays up until 5:35 PM today—spring is coming!",
       "onThisDay": "In 1964, the Beatles arrived in America.",
       "trivia": ["Which planet has a Great Red Spot?", "Who painted the Mona Lisa?"],
       "joke": "What do you call a fake noodle? An impasta!",

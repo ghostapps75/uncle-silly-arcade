@@ -8,6 +8,7 @@ import { STATE_CONFIG } from './state/machine';
 import { SudokuBoard } from './components/Sudoku/SudokuBoard';
 import { SudokuControls } from './components/Sudoku/SudokuControls';
 import { useSudoku } from './hooks/useSudoku';
+import { CddArchiveView } from './components/Views/CddArchiveView';
 
 function App() {
   const { state, dispatch, handleInput } = useGameState();
@@ -32,7 +33,7 @@ function App() {
       }
     >
       {/* Chat View */}
-      {!isSudokuMode && (
+      {!isSudokuMode && state.state !== 'CDD_VIEW' && (
         <>
           {state.chatHistory.map((msg) => (
             <ChatBubble key={msg.id} message={msg} />
@@ -65,6 +66,10 @@ function App() {
             <ChatBubble key={msg.id} message={msg} />
           ))}
         </>
+      )}
+
+      {state.state === 'CDD_VIEW' && (
+        <CddArchiveView state={state} dispatch={dispatch} />
       )}
 
       {state.state === 'SUDOKU_PLAY' && state.sudoku && (

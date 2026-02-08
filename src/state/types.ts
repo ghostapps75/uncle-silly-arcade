@@ -85,6 +85,7 @@ export interface AppContext {
     // flags
     isProcessing: boolean; // showing typing indicator
     nonce: number; // For async race condition handling
+    viewingDate?: string; // YYYY-MM-DD for CDD Archive
 }
 
 export type Action =
@@ -97,4 +98,5 @@ export type Action =
     | { type: 'UPDATE_RIDDLE'; payload: Partial<RiddleState> }
     | { type: 'CACHE_CDD'; payload: { date: string, data: any } }
     | { type: 'LOAD_CDD'; payload: { date: string, data: any } }
+    | { type: 'SET_VIEWING_DATE'; payload: string }
     | { type: 'INPUT_RECEIVED'; payload: string };

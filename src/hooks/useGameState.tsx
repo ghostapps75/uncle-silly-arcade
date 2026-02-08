@@ -3,7 +3,6 @@ import type { AppContext, Action } from '../state/types';
 import { STATE_CONFIG } from '../state/machine';
 import { calculateNextState, isValidInput } from '../state/logic';
 import { generateId } from '../lib/utils';
-import { formatCDD } from '../lib/formatters';
 
 const INITIAL_STATE: AppContext = {
     state: 'HOME_MENU',
@@ -40,6 +39,8 @@ function reducer(state: AppContext, action: Action): AppContext {
                 ...state,
                 chatHistory: [...state.chatHistory, { id: generateId(), role: 'user', content: action.payload, timestamp: Date.now() }]
             };
+        case 'SET_VIEWING_DATE':
+            return { ...state, viewingDate: action.payload };
         case 'UPDATE_TRIVIA':
             return { ...state, trivia: { ...state.trivia, ...action.payload } as any };
         case 'UPDATE_RIDDLE':
@@ -75,6 +76,27 @@ export function useGameState() {
             cddCache: state.cddCache
         }));
     }, [state.difficultyScores, state.cddCache]);
+
+    // Auto-fetch CDD when viewingDate changes (if in CDD_VIEW)
+    useEffect(() => {
+        if (state.state === 'CDD_VIEW') {
+            const dateToCheck = state.viewingDate || new Date().toLocaleDateString('en-CA');
+            if (!state.cddCache[dateToCheck] && !state.isProcessing) {
+                // Trigger fetch
+                dispatch({ type: 'SET_PROCESSING', payload: true });
+                import('../lib/api').then(m => m.fetchCDD(dateToCheck))
+                    .then(data => {
+                        dispatch({ type: 'CACHE_CDD', payload: { date: data.date, data } });
+                    })
+                    .catch(err => {
+                        console.error("Failed to fetch archive CDD", err);
+                    })
+                    .finally(() => {
+                        dispatch({ type: 'SET_PROCESSING', payload: false });
+                    });
+            }
+        }
+    }, [state.state, state.viewingDate, state.cddCache]);
 
     const handleInput = useCallback(async (text: string) => {
         if (state.isProcessing) return; // Block input while processing
@@ -115,22 +137,31 @@ export function useGameState() {
             (async () => {
                 try {
                     if (action === 'FETCH_CDD') {
-                        // Check Cache
-                        // We use a local date key. Ideally server date, but for cache check we use local?
-                        // Actually, if we have *any* entry for today's local date, we use it.
-                        // But wait, server determines date.
-                        // Let's rely on today's local YYYY-MM-DD.
+                        // Determine Date to Fetch (Default to Today if not set)
                         const todayKey = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+                        const targetDate = state.viewingDate || todayKey;
 
-                        if (state.cddCache[todayKey]) {
-                            const data = state.cddCache[todayKey];
-                            dispatch({ type: 'ADD_MESSAGE', payload: { id: generateId(), role: 'bot', content: formatCDD(data), timestamp: Date.now() } });
+                        if (state.cddCache[targetDate]) {
+                            // If cached, just transition/display (UI will read from cache)
+                            // But for chat-based CDD, we added a message. 
+                            // For Archive View, we might just need to ensure it's in cache.
+                            // If we are in CDD_VIEW mode, the view reads from cache directly?
+                            // Let's keep the ADD_MESSAGE for backward compatibility if we stay in chat mode,
+                            // OR if we switch to a VIEW, we don't need to add a message.
+                            // DECISION: The new CDD_VIEW will read `state.cddCache[state.viewingDate]`.
+                            // So we just need to make sure it IS cached.
+                            console.log(`[CDD] Found cache for ${targetDate}`);
                         } else {
-                            const data = await import('../lib/api').then(m => m.fetchCDD());
-                            // Cache it (using server date as key to be safe, or todayKey?)
-                            // Use returned date.
+                            console.log(`[CDD] Fetching for ${targetDate}`);
+                            const data = await import('../lib/api').then(m => m.fetchCDD(targetDate));
+
+                            // Cache it
                             dispatch({ type: 'CACHE_CDD', payload: { date: data.date, data } });
-                            dispatch({ type: 'ADD_MESSAGE', payload: { id: generateId(), role: 'bot', content: formatCDD(data), timestamp: Date.now() } });
+
+                            // If it's today's CDD (classic flow), maybe still add message?
+                            // But if we are in CDD_VIEW, we don't need chat bubble.
+                            // Let's add message ONLY if we are NOT in CDD_VIEW (aka legacy/chat access? but CDD button triggers CDD_VIEW now)
+                            // Actually, if we are in CDD_VIEW, the component will render the data.
                         }
                     }
                     else if (action === 'FETCH_TRIVIA') {
@@ -200,11 +231,12 @@ export function useGameState() {
                     }
                     // ... Riddle etc
                 } catch (e) {
-                    console.error(e);
-                    dispatch({
-                        type: 'ADD_MESSAGE',
-                        payload: { id: generateId(), role: 'bot', content: "Oops! I couldn't reach my brain. 🧠 Try again later!", timestamp: Date.now() }
-                    });
+                    console.error("Fetch failed", e);
+                    // Do not add chat message on error. Let the UI handle the error state.
+                    // dispatch({
+                    //     type: 'ADD_MESSAGE',
+                    //     payload: { id: generateId(), role: 'bot', content: "Oops! I couldn't reach my brain. 🧠 Try again later!", timestamp: Date.now() }
+                    // });
                 } finally {
                     dispatch({ type: 'SET_PROCESSING', payload: false });
                 }

@@ -6,8 +6,16 @@ const headers = {
     'X-APP-TOKEN': APP_TOKEN
 };
 
-export async function fetchCDD() {
-    const res = await fetch(`${API_BASE}/cdd`, { headers });
+export async function fetchCDD(date?: string) {
+    const params = new URLSearchParams();
+    if (date) params.append('date', date);
+
+    // We append the params to the URL
+    // Note: If no date, params.toString() is empty, which is fine
+    const qs = params.toString();
+    const url = `${API_BASE}/cdd${qs ? '?' + qs : ''}`;
+
+    const res = await fetch(url, { headers });
     if (!res.ok) throw new Error('API Error');
     return res.json();
 }
