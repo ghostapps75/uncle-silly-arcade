@@ -134,11 +134,21 @@ export function useGameState() {
                         }
                     }
                     else if (action === 'FETCH_TRIVIA') {
+                        // Determine Category: Use input if it's a valid category, otherwise fallback to current
+                        const validCategories = ['ANIMALS', 'SPACE', 'MOVIES', 'SPORTS', 'RANDOM'];
+                        let category = state.trivia?.currentCategory || 'RANDOM';
+
+                        const normalizedInput = text.toUpperCase().trim();
+                        if (validCategories.includes(normalizedInput)) {
+                            category = normalizedInput;
+                        }
+
                         // Fetch Trivia
-                        const data = await import('../lib/api').then(m => m.fetchTrivia(state.mode === 'TRIVIA' ? text : 'RANDOM', state.difficultyScores.trivia));
+                        const data = await import('../lib/api').then(m => m.fetchTrivia(category, state.difficultyScores.trivia));
+
                         dispatch({
                             type: 'UPDATE_TRIVIA',
-                            payload: { currentQuestion: data, hasUsedHint: false }
+                            payload: { currentQuestion: data, hasUsedHint: false, currentCategory: category }
                         });
                         dispatch({
                             type: 'ADD_MESSAGE',

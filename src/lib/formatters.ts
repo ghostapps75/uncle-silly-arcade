@@ -8,8 +8,8 @@ export function formatCDD(data: any): string {
 ## 📅 National Days
 ${data.verifiedNationalDays?.length > 0 ? data.verifiedNationalDays.map((d: string) => `- ${d}`).join('\n') : `- ${data.madeUpDayIfNoVerified} (Classic Uncle Silly!)`}
 
-## 🌍 World Note (${data.worldNoteCategory})
-${data.worldNote}
+## ❤️ Daily Pulse
+${data.dailyPulse || data.worldNote}
 
 ## 📜 On This Day
 ${data.onThisDay}

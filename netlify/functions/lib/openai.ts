@@ -17,7 +17,10 @@ export async function callOpenAI<T>(
     systemPrompt: string,
     userPrompt: string,
     schema: z.ZodSchema<T>,
-    model = "gpt-4o-mini"
+    model = "gpt-4o-mini",
+    temperature = 0.7,
+    presence_penalty = 0,
+    frequency_penalty = 0
 ): Promise<T | null> {
     const makeRequest = async (isRetry: boolean) => {
         let currentPrompt = userPrompt;
@@ -32,7 +35,9 @@ export async function callOpenAI<T>(
                 { role: 'user', content: currentPrompt }
             ],
             response_format: { type: "json_object" },
-            temperature: 0.7,
+            temperature,
+            presence_penalty,
+            frequency_penalty,
         });
         return response.choices[0].message.content;
     };

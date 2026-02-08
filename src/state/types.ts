@@ -46,6 +46,7 @@ export interface TriviaState {
     };
     hasUsedHint: boolean;
     streak: number;
+    currentCategory?: string;
 }
 
 export interface RiddleState {
