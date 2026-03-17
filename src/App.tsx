@@ -73,8 +73,7 @@ function App() {
       )}
 
       {state.state === 'SUDOKU_PLAY' && state.sudoku && (
-        <div className="flex flex-col items-center justify-start flex-1 h-full pt-4">
-          <h2 className="text-xl font-display font-medium text-brand-primary mb-2">Sudoku</h2>
+        <div className="flex flex-col items-center justify-start flex-1 h-full pt-4 md:pt-8 w-full">
 
           <SudokuBoard
             board={state.sudoku.board}

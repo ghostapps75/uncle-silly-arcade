@@ -1,4 +1,3 @@
-
 import { cn } from '../../lib/utils';
 import { Undo, Eraser, PenLine } from 'lucide-react';
 
@@ -16,49 +15,49 @@ export function SudokuControls({
 }: SudokuControlsProps) {
 
     return (
-        <div className="flex flex-col gap-5 w-full max-w-sm mx-auto mt-6 px-4">
+        <div className="flex flex-col gap-4 w-full max-w-xl xl:max-w-2xl mx-auto mt-4 px-2 sm:px-4">
             {/* Tools Row */}
-            <div className="flex justify-between items-center gap-4 bg-arcade-paper/40 p-2 rounded-2xl backdrop-blur-sm border border-white/5">
+            <div className="flex justify-around items-center gap-2 sm:gap-4 bg-[#fdfbf7] p-2 sm:p-3 rounded-lg shadow-md border-2 border-slate-200 font-serif">
                 <button
                     onClick={onUndo}
                     disabled={!canUndo}
-                    className="flex flex-col items-center gap-1 p-2 text-arcade-text-muted hover:text-white disabled:opacity-30 active:scale-95 transition"
+                    className="flex flex-col items-center gap-1 p-2 text-slate-500 hover:text-slate-800 disabled:opacity-30 active:scale-95 transition"
                 >
-                    <Undo size={22} />
-                    <span className="text-[10px] font-bold tracking-wider uppercase">Undo</span>
+                    <Undo size={20} />
+                    <span className="text-[10px] sm:text-xs font-bold tracking-wider uppercase">Undo</span>
                 </button>
 
                 <button
                     onClick={onToggleNotes}
                     className={cn(
-                        "flex flex-col items-center gap-1 px-5 py-2 rounded-xl transition-all duration-300 active:scale-95 border",
+                        "flex flex-col items-center gap-1 px-4 sm:px-6 py-2 rounded transition-all duration-200 active:scale-95 border-2",
                         isNotesMode
-                            ? "bg-arcade-cyan text-arcade-midnight border-arcade-cyan shadow-[0_0_15px_rgba(6,182,212,0.4)]"
-                            : "bg-white/5 text-arcade-text-muted border-white/5 hover:bg-white/10"
+                            ? "bg-slate-800 text-white border-slate-800 shadow-inner"
+                            : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50"
                     )}
                 >
-                    <PenLine size={22} />
-                    <span className="text-[10px] font-bold tracking-wider uppercase">
+                    <PenLine size={20} />
+                    <span className="text-[10px] sm:text-xs font-bold tracking-wider uppercase">
                         Notes {isNotesMode ? 'ON' : 'OFF'}
                     </span>
                 </button>
 
                 <button
                     onClick={onErase}
-                    className="flex flex-col items-center gap-1 p-2 text-arcade-text-muted hover:text-arcade-magenta active:scale-95 transition"
+                    className="flex flex-col items-center gap-1 p-2 text-slate-500 hover:text-red-700 active:scale-95 transition"
                 >
-                    <Eraser size={22} />
-                    <span className="text-[10px] font-bold tracking-wider uppercase">Erase</span>
+                    <Eraser size={20} />
+                    <span className="text-[10px] sm:text-xs font-bold tracking-wider uppercase">Erase</span>
                 </button>
             </div>
 
             {/* Numpad */}
-            <div className="grid grid-cols-9 gap-1 sm:gap-2">
+            <div className="grid grid-cols-5 sm:grid-cols-9 gap-2">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                     <button
                         key={num}
                         onClick={() => onNumber(num)}
-                        className="aspect-[4/5] sm:aspect-square flex items-center justify-center text-xl sm:text-2xl font-display font-bold text-arcade-cyan bg-arcade-paper border border-white/5 rounded-xl shadow-lg active:bg-arcade-cyan active:text-arcade-midnight hover:border-arcade-cyan/50 hover:shadow-[0_0_10px_rgba(6,182,212,0.2)] transition-all duration-150 transform hover:-translate-y-0.5 active:translate-y-0"
+                        className="aspect-[4/3] sm:aspect-square flex items-center justify-center text-2xl sm:text-3xl md:text-4xl font-[var(--font-handwriting)] font-bold text-slate-800 bg-white border-2 border-slate-300 rounded shadow-sm hover:bg-blue-50 hover:border-blue-400 hover:text-blue-800 active:bg-blue-100 active:scale-95 transition-all"
                     >
                         {num}
                     </button>

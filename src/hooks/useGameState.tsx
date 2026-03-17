@@ -1,4 +1,5 @@
 import { useReducer, useEffect, useCallback } from 'react';
+import { format } from 'date-fns';
 import type { AppContext, Action } from '../state/types';
 import { STATE_CONFIG } from '../state/machine';
 import { calculateNextState, isValidInput } from '../state/logic';
@@ -80,7 +81,7 @@ export function useGameState() {
     // Auto-fetch CDD when viewingDate changes (if in CDD_VIEW)
     useEffect(() => {
         if (state.state === 'CDD_VIEW') {
-            const dateToCheck = state.viewingDate || new Date().toLocaleDateString('en-CA');
+            const dateToCheck = state.viewingDate || format(new Date(), 'yyyy-MM-dd');
             if (!state.cddCache[dateToCheck] && !state.isProcessing) {
                 // Trigger fetch
                 dispatch({ type: 'SET_PROCESSING', payload: true });
@@ -138,7 +139,7 @@ export function useGameState() {
                 try {
                     if (action === 'FETCH_CDD') {
                         // Determine Date to Fetch (Default to Today if not set)
-                        const todayKey = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+                        const todayKey = format(new Date(), 'yyyy-MM-dd'); // YYYY-MM-DD
                         const targetDate = state.viewingDate || todayKey;
 
                         if (state.cddCache[targetDate]) {

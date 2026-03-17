@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Outfit:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Outfit:wght@100..900&family=Caveat:wght@400..700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: 'Outfit', 'system-ui', 'sans-serif';
   --font-display: 'Fredoka', 'Comic Neue', 'sans-serif';
+  --font-handwriting: 'Caveat', 'cursive';
 
   /* Midnight Arcade Palette */
   --color-arcade-midnight: #1a1a2e;
@@ -102,5 +103,10 @@
 
 .scrollbar-hide {
   -ms-overflow-style: none;
-  scrollbar-width: none;
+}
+
+@supports (scrollbar-width: none) {
+  .scrollbar-hide {
+    scrollbar-width: none;
+  }
 }
