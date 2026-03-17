@@ -83,6 +83,8 @@ function App() {
             onCellClick={sudoku.handleCellClick}
             onValueInput={sudoku.handleNumberInput}
             isNotesMode={sudoku.isNotesMode}
+            difficulty={state.sudoku.difficulty}
+            puzzleId={Math.floor((state.sudoku.startTime || Date.now()) % 100000).toString().padStart(5, '0')}
           />
 
           <SudokuControls

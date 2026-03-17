@@ -8,10 +8,12 @@ interface SudokuBoardProps {
     onCellClick: (row: number, col: number) => void;
     onValueInput: (value: number, isNote: boolean) => void;
     isNotesMode: boolean;
+    difficulty: string;
+    puzzleId: string | number;
 }
 
 export function SudokuBoard({
-    board, initialBoard, notes, activeCell, onCellClick
+    board, initialBoard, notes, activeCell, onCellClick, difficulty, puzzleId
 }: SudokuBoardProps) {
 
     return (
@@ -22,11 +24,11 @@ export function SudokuBoard({
                 <div className="bg-slate-800 text-white p-3 sm:p-4 border-b-4 border-slate-700">
                     <div className="flex justify-between items-center mb-1">
                         <h2 className="text-xl sm:text-2xl font-black uppercase tracking-widest">SUDOKU</h2>
-                        <div className="bg-slate-700 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm font-mono">DIFFICULTY: MEDIUM</div>
+                        <div className="bg-slate-700 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm font-mono block uppercase">DIFFICULTY: {difficulty}</div>
                     </div>
                     <div className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-widest font-semibold flex justify-between">
                         <span>Official Puzzle Archive</span>
-                        <span>No. {Math.floor(Math.random() * 90000) + 10000}</span>
+                        <span>No. {puzzleId}</span>
                     </div>
                 </div>
 
