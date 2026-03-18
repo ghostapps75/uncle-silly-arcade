@@ -1,71 +1,128 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { TriviaState } from '../../state/types';
 
 interface TriviaViewProps {
     data: TriviaState;
+    isFeedback: boolean;
+    isProcessing: boolean;
     onAnswer: (idx: number) => void;
     onNext: () => void;
+    onMenu: () => void;
 }
 
-export const TriviaView: React.FC<TriviaViewProps> = ({ data, onAnswer, onNext }) => {
-    const { currentQuestion } = data;
-    // Determine if question has been answered (we don't strictly track "answered" boolean in state, 
-    // but usually logic would separate QUESTION vs FEEDBACK state. 
-    // However, the user's prompt implies TRIVIA_QUESTION handles both or transitions?
-    // In App.tsx: currentView === 'TRIVIA_QUESTION'. 
-    // If the user answers, do we stay in TRIVIA_QUESTION?
-    // The reducer in Step 498 has CHECK_ANSWER which updates score/streak/reward but doesn't explicitly change state away from TRIVIA_QUESTION?
-    // Wait, step 498 reducer's CHECK_ANSWER does NOT transition. So we are still in TRIVIA_QUESTION.
-    // We need local state or derived state to show the "Result" vs "Question".
-    // Actually, if `streak` changed or score changed, we know... but simpler: 
-    // The user said: "Feedback area (if answered)."
-    // I might need a local state here 'selectedAnswer' to separate the view of "Picking" vs "Result".
+const LABELS = ['A', 'B', 'C', 'D'];
 
-    // BUT, the reducer updates REWARD.
+export const TriviaView: React.FC<TriviaViewProps> = ({
+    data, isFeedback, isProcessing, onAnswer, onNext, onMenu
+}) => {
+    const { currentQuestion, lastResult, hasUsedHint, selectedDifficulty } = data;
+    const [showHint, setShowHint] = useState(false);
 
-    // Let's assume for now we show the buttons. If the user clicks one, we fire onAnswer.
-    // If we want to disable buttons after answering, we'd need to know.
-    // Let's implement basic layout first.
+    if (!currentQuestion) {
+        return (
+            <div className="flex items-center justify-center flex-1">
+                <div className="text-white/60 text-lg animate-pulse">Loading question…</div>
+            </div>
+        );
+    }
 
-    if (!currentQuestion) return <div className="text-center text-white">Loading Question...</div>;
+    const diffLabel = selectedDifficulty === 'HARD' ? '🔴 Hard' : '🟢 Easy';
 
     return (
-        <div className="flex flex-col items-center justify-center flex-1 w-full max-w-2xl mx-auto animate-fade-in">
-            {/* Question Card */}
-            <div className="bg-black/60 backdrop-blur-md border border-arcade-cyan/30 p-8 rounded-2xl shadow-[0_0_30px_rgba(6,182,212,0.2)] w-full mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold text-white text-center leading-relaxed drop-shadow-md">
+        <div className="flex flex-col items-center justify-center flex-1 w-full max-w-2xl mx-auto px-4 gap-4 animate-fade-in">
+
+            {/* ── Question Card ── */}
+            <div className="w-full bg-white/15 backdrop-blur-lg border border-white/30 rounded-3xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.25)]">
+                {/* Header strip */}
+                <div className="flex justify-between items-center mb-4 text-xs font-mono text-white/50 uppercase tracking-widest">
+                    <span>{diffLabel} · {data.currentCategory || 'TRIVIA'}</span>
+                    {data.streak! > 1 && (
+                        <span className="text-amber-400">🔥 {data.streak} streak</span>
+                    )}
+                </div>
+
+                <h2 className="text-xl md:text-2xl font-bold text-white leading-snug text-center">
                     {currentQuestion.question}
                 </h2>
+
+                {/* Hint */}
+                {!isFeedback && currentQuestion.hint && (
+                    <div className="mt-4 text-center">
+                        {showHint ? (
+                            <p className="text-amber-300 text-sm italic opacity-90">💡 {currentQuestion.hint}</p>
+                        ) : (
+                            <button
+                                onClick={() => setShowHint(true)}
+                                className="text-white/40 text-xs hover:text-amber-300 transition-colors underline underline-offset-2"
+                            >
+                                Show hint
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
 
-            {/* Answer Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                {currentQuestion.choices.map((choice, idx) => (
+            {/* ── Choices / Feedback ── */}
+            {!isFeedback ? (
+                /* ── Answering ── */
+                <div className="grid grid-cols-2 gap-3 w-full">
+                    {currentQuestion.choices.map((choice, idx) => (
+                        <button
+                            key={idx}
+                            onClick={() => { if (!isProcessing) onAnswer(idx); }}
+                            disabled={isProcessing}
+                            className="group relative bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/25 hover:border-white/50 rounded-2xl p-4 text-left transition-all duration-150 active:scale-95 disabled:opacity-50"
+                        >
+                            <span className="block text-xs font-mono text-white/40 group-hover:text-white/70 mb-1 transition-colors">
+                                {LABELS[idx]}
+                            </span>
+                            <span className="block text-base font-semibold text-white leading-snug">
+                                {choice}
+                            </span>
+                        </button>
+                    ))}
+                </div>
+            ) : (
+                /* ── Result feedback ── */
+                <div className={`w-full rounded-3xl p-5 border backdrop-blur-sm ${
+                    lastResult?.isCorrect
+                        ? 'bg-emerald-500/20 border-emerald-400/40'
+                        : 'bg-red-500/20 border-red-400/40'
+                }`}>
+                    <div className="text-2xl font-bold text-center mb-2">
+                        {lastResult?.isCorrect ? '✅ Correct!' : '❌ Not quite!'}
+                    </div>
+                    {!lastResult?.isCorrect && (
+                        <p className="text-center text-white/70 text-sm mb-2">
+                            The answer was <strong className="text-white">{LABELS[lastResult?.correctIndex ?? 0]}. {currentQuestion.choices[lastResult?.correctIndex ?? 0]}</strong>
+                        </p>
+                    )}
+                    {lastResult?.explanation && (
+                        <p className="text-center text-white/80 text-sm italic leading-relaxed">
+                            {lastResult.explanation}
+                        </p>
+                    )}
+                </div>
+            )}
+
+            {/* ── Action Buttons ── */}
+            <div className="flex gap-3 w-full">
+                {isFeedback && (
                     <button
-                        key={idx}
-                        onClick={() => onAnswer(idx)}
-                        className="group relative overflow-hidden bg-gray-900/80 border-2 border-gray-700 hover:border-arcade-magenta hover:shadow-[0_0_15px_#d946ef] text-left p-6 rounded-xl transition-all duration-200 active:scale-95"
+                        onClick={onNext}
+                        disabled={isProcessing}
+                        className="flex-1 py-3 rounded-full bg-white/20 hover:bg-white/35 border border-white/30 text-white font-bold tracking-wide transition-all active:scale-95 disabled:opacity-50"
                     >
-                        <span className="text-gray-500 font-mono text-sm mr-3 group-hover:text-white transition-colors">
-                            {String.fromCharCode(65 + idx)}
-                        </span>
-                        <span className="text-lg md:text-xl font-bold text-gray-200 group-hover:text-white group-hover:translate-x-1 transition-transform inline-block">
-                            {choice}
-                        </span>
+                        {isProcessing ? '⏳ Loading…' : 'Next Question ⏭'}
                     </button>
-                ))}
+                )}
+                <button
+                    onClick={onMenu}
+                    className={`py-3 px-5 rounded-full border border-white/20 text-white/50 hover:text-white hover:border-white/40 text-sm transition-all ${isFeedback ? '' : 'ml-auto'}`}
+                >
+                    Menu
+                </button>
             </div>
-
-            {/* Next Button - Always visible for flow, or maybe only after interaction? 
-                User said: "Ensure clicking [Next Question] uses the currently selected difficulty..."
-                "Update the UI so that once in TRIVIA_QUESTION state, the only active buttons are [A] [B] [C] [D] and [Next Question]."
-             */}
-            <button
-                onClick={onNext}
-                className="mt-8 px-8 py-3 bg-arcade-cyan/10 border border-arcade-cyan text-arcade-cyan font-mono font-bold tracking-widest hover:bg-arcade-cyan hover:text-black transition-all shadow-[0_0_10px_rgba(6,182,212,0.3)] hover:shadow-[0_0_20px_#06b6d4] rounded-full"
-            >
-                NEXT QUESTION ⏭
-            </button>
         </div>
     );
 };

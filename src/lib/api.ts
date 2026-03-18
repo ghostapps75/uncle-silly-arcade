@@ -20,12 +20,12 @@ export async function fetchCDD(date?: string) {
     return res.json();
 }
 
-export async function fetchTrivia(category: string, difficulty: number) {
+export async function fetchTrivia(category: string, difficulty: number, recentQuestions: string[] = []) {
     if (import.meta.env.DEV) console.log("FETCH TRIVIA REQ:", { category, difficulty });
     const res = await fetch(`${API_BASE}/trivia`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ category, difficulty })
+        body: JSON.stringify({ category, difficulty, recentQuestions })
     });
     if (!res.ok) {
         // Try to read error body
